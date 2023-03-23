@@ -19,14 +19,25 @@ st.set_page_config(
    initial_sidebar_state="expanded",
 )
 
+def init_image():
+    img = Image.open(ss.image_path).convert("RGB")
+    w, h = img.size
+    img = np.asarray(img, dtype=np.uint8)
+    
+    ss.img = img
+    ss.img_queue = [img]
+    ss.index = 0
+    ss.objects = None
+    
+    
 # Specify canvas parameters in application
 with st.sidebar:
     stroke_width = 3
     point_display_radius = 3
     ss.selected_color = st.color_picker("Select Color: ")
     bg_color = "#eee"
-    bg_image = st.file_uploader("Background image:", type=["png", "jpg"])
-
+    ss.image_path = st.file_uploader("Background image:", type=["png", "jpg"])
+    st.button(label="run", on_click=init_image)
     realtime_update = st.checkbox("Update in realtime", True)
 
 def undo_image():
@@ -52,24 +63,14 @@ def change_color():
             ss.img_queue.append(img)
             ss.index += 1
             select_sub_img(ss.i, ss.j)
-if bg_image and 'img_queue' not in ss:
-    img = Image.open(bg_image).convert("RGB")
-    w, h = img.size
-    img = np.asarray(img, dtype=np.uint8)
-    
-    ss.img = img
-    ss.img_queue = [img]
-    ss.index = 0
-    ss.objects = None
-    
-if bg_image:
+
+if 'image_path' in ss:
     col1, col2 = st.columns(spec=2)
     with col1:
         ss.i = st.number_input("height index", value=0, step=1)
     with col2:
         ss.j = st.number_input("width index", value=0, step=1)
     st.button(label="select the sub image index", on_click=select_sub_img, args=(ss.i, ss.j,))
-    
     
 col1, col2, col3 = st.columns(spec=3, gap='medium')
 
@@ -85,7 +86,7 @@ if 'sub_img' in ss:
             stroke_width=stroke_width,
             stroke_color=ss.selected_color,
             background_color=bg_color,
-            background_image=Image.fromarray(ss.sub_img) if bg_image else None,
+            background_image=Image.fromarray(ss.sub_img) if ss.image_path else None,
             update_streamlit=realtime_update,
             height=ss.sub_h,
             width=ss.sub_w,
@@ -107,7 +108,7 @@ if 'sub_img' in ss:
             buf = BytesIO()
             Image.fromarray(ss.img_queue[ss.index]).save(buf, format="JPEG")
             byte_im = buf.getvalue()
-            st.download_button(label="save", data=buf, file_name=bg_image.name,mime="image/png")
+            st.download_button(label="save", data=buf, file_name=ss.image_path.name,mime="image/png")
         
     # Do something interesting with the image data and paths
 
