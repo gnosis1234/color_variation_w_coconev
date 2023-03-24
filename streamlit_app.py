@@ -49,8 +49,50 @@ def reset_image():
     ss.img_queue = [ss.img_queue[0]]
 def apply_image():
     ss.index = ss.index
-def frontend():
+
     
+        
+def select_sub_img(i, j):
+    img = ss.img_queue[ss.index]
+    h,w,_=np.shape(img)
+    height = h // 9
+    width = w // 4
+    ss.sub_img = img[i*height:(i + 1) * height, j * width: (j + 1) * width, :]
+    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
+    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
+    
+    return ss.sub_img
+
+def select_sub_img_img(img):
+    h,w,_=np.shape(img)
+    height = h // 9
+    width = w // 4
+    ss.sub_img = img[ss.i*height:(ss.i + 1) * height, ss.j * width: (ss.j + 1) * width, :]
+    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
+    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
+    
+    return ss.sub_img
+def change_color():
+    for color, changed_color in zip(ss.palette, ss.changed_palette):
+
+        if not (color == hex_to_rgb(changed_color)).all():
+            img = color_change(image=ss.img_queue[ss.index], prev_bgr=color, target_rgb=hex_to_rgb(changed_color))
+            ss.img_queue.append(img)
+            ss.index += 1
+            select_sub_img(ss.i, ss.j)
+
+if 'image_path' in ss:
+    col1, col2 = st.columns(spec=2)
+    with col1:
+        ss.i = st.number_input("height index", value=0, step=1)
+    with col2:
+        ss.j = st.number_input("width index", value=0, step=1)
+    st.button(label="select the sub image index", on_click=select_sub_img, args=(ss.i, ss.j,))
+    
+col1, col2, col3 = st.columns(spec=3, gap='medium')
+
+# Create a canvas component
+if 'sub_img' in ss:
     with col1:
         st.header("Target Image")
         st.image(ss.img)
@@ -106,49 +148,6 @@ def frontend():
             ss.objects = objects.to_dict()
 
         st.image(ss.img_queue[ss.index])
-        
-def select_sub_img(i, j):
-    img = ss.img_queue[ss.index]
-    h,w,_=np.shape(img)
-    height = h // 9
-    width = w // 4
-    ss.sub_img = img[i*height:(i + 1) * height, j * width: (j + 1) * width, :]
-    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
-    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
-    
-    return ss.sub_img
-
-def select_sub_img_img(img):
-    h,w,_=np.shape(img)
-    height = h // 9
-    width = w // 4
-    ss.sub_img = img[ss.i*height:(ss.i + 1) * height, ss.j * width: (ss.j + 1) * width, :]
-    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
-    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
-    
-    return ss.sub_img
-def change_color():
-    for color, changed_color in zip(ss.palette, ss.changed_palette):
-
-        if not (color == hex_to_rgb(changed_color)).all():
-            img = color_change(image=ss.img_queue[ss.index], prev_bgr=color, target_rgb=hex_to_rgb(changed_color))
-            ss.img_queue.append(img)
-            ss.index += 1
-            select_sub_img(ss.i, ss.j)
-
-if 'image_path' in ss:
-    col1, col2 = st.columns(spec=2)
-    with col1:
-        ss.i = st.number_input("height index", value=0, step=1)
-    with col2:
-        ss.j = st.number_input("width index", value=0, step=1)
-    st.button(label="select the sub image index", on_click=select_sub_img, args=(ss.i, ss.j,))
-    
-col1, col2, col3 = st.columns(spec=3, gap='medium')
-
-# Create a canvas component
-if 'sub_img' in ss:
-    frontend()
 
 
     st.header("Palette")
