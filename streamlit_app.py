@@ -36,7 +36,7 @@ with st.sidebar:
     point_display_radius = 3
     ss.selected_color = st.color_picker("Select Color: ")
     bg_color = "#eee"
-    ss.image_path = st.file_uploader("Background image:", type=["png", "jpg"])
+    ss.image_path = st.file_uploader("Select an image:", type=["png", "jpg"])
     st.button(label="run", on_click=init_image)
     realtime_update = st.checkbox("Update in realtime", True)
 
@@ -47,35 +47,7 @@ def redo_image():
 def reset_image():
     ss.index = 0
     ss.img_queue = [ss.img_queue[0]]
-def select_sub_img(i, j):
-    img = ss.img_queue[-1]
-    h,w,_=np.shape(img)
-    height = h // 9
-    width = w // 4
-    ss.sub_img = img[i*height:(i + 1) * height, j * width: (j + 1) * width, :]
-    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
-    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
-def change_color():
-    for color, changed_color in zip(ss.palette, ss.changed_palette):
-
-        if not (color == hex_to_rgb(changed_color)).all():
-            img = color_change(image=ss.img_queue[ss.index], prev_bgr=color, target_rgb=hex_to_rgb(changed_color))
-            ss.img_queue.append(img)
-            ss.index += 1
-            select_sub_img(ss.i, ss.j)
-
-if 'image_path' in ss:
-    col1, col2 = st.columns(spec=2)
-    with col1:
-        ss.i = st.number_input("height index", value=0, step=1)
-    with col2:
-        ss.j = st.number_input("width index", value=0, step=1)
-    st.button(label="select the sub image index", on_click=select_sub_img, args=(ss.i, ss.j,))
-    
-col1, col2, col3 = st.columns(spec=3, gap='medium')
-
-# Create a canvas component
-if 'sub_img' in ss:
+def apply_image():
     with col1:
         st.header("Target Image")
         st.image(ss.img)
@@ -86,14 +58,14 @@ if 'sub_img' in ss:
             stroke_width=stroke_width,
             stroke_color=ss.selected_color,
             background_color=bg_color,
-            background_image=Image.fromarray(ss.sub_img) if ss.image_path else None,
+            background_image=Image.fromarray(select_sub_img_img(ss.img_queue[ss.index])) if ss.image_path else None,
             update_streamlit=realtime_update,
             height=ss.sub_h,
             width=ss.sub_w,
             drawing_mode='point',
             point_display_radius=1,
             key="canvas",
-            display_toolbar=False,
+            display_toolbar=True,
         )
 
         col1_, col2_, col3_, col4_ = st.columns(4)
@@ -129,6 +101,49 @@ if 'sub_img' in ss:
             ss.objects = objects.to_dict()
 
         st.image(ss.img_queue[ss.index])
+        
+def select_sub_img(i, j):
+    img = ss.img_queue[ss.index]
+    h,w,_=np.shape(img)
+    height = h // 9
+    width = w // 4
+    ss.sub_img = img[i*height:(i + 1) * height, j * width: (j + 1) * width, :]
+    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
+    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
+    
+    return ss.sub_img
+
+def select_sub_img_img(img):
+    h,w,_=np.shape(img)
+    height = h // 9
+    width = w // 4
+    ss.sub_img = img[ss.i*height:(ss.i + 1) * height, ss.j * width: (ss.j + 1) * width, :]
+    ss.sub_img = cv2.resize(ss.sub_img, dsize=(350, 350), interpolation=cv2.INTER_NEAREST)
+    ss.sub_h, ss.sub_w, _ = np.shape(ss.sub_img)
+    
+    return ss.sub_img
+def change_color():
+    for color, changed_color in zip(ss.palette, ss.changed_palette):
+
+        if not (color == hex_to_rgb(changed_color)).all():
+            img = color_change(image=ss.img_queue[ss.index], prev_bgr=color, target_rgb=hex_to_rgb(changed_color))
+            ss.img_queue.append(img)
+            ss.index += 1
+            select_sub_img(ss.i, ss.j)
+
+if 'image_path' in ss:
+    col1, col2 = st.columns(spec=2)
+    with col1:
+        ss.i = st.number_input("height index", value=0, step=1)
+    with col2:
+        ss.j = st.number_input("width index", value=0, step=1)
+    st.button(label="select the sub image index", on_click=select_sub_img, args=(ss.i, ss.j,))
+    
+col1, col2, col3 = st.columns(spec=3, gap='medium')
+
+# Create a canvas component
+if 'sub_img' in ss:
+    apply_image()
 
 
     st.header("Palette")
