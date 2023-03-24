@@ -81,7 +81,7 @@ def frontend():
             st.button(label="reset", on_click=reset_image)
         with col4_:
             st.button(label="apply", on_click=apply_image)
-        with col4_:
+        with col5_:
             buf = BytesIO()
             Image.fromarray(ss.img_queue[ss.index]).save(buf, format="JPEG")
             byte_im = buf.getvalue()
