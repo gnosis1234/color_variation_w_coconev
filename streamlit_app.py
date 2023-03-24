@@ -48,6 +48,9 @@ def reset_image():
     ss.index = 0
     ss.img_queue = [ss.img_queue[0]]
 def apply_image():
+    ss.index = ss.index
+def frontend():
+    
     with col1:
         st.header("Target Image")
         st.image(ss.img)
@@ -68,7 +71,7 @@ def apply_image():
             display_toolbar=True,
         )
 
-        col1_, col2_, col3_, col4_ = st.columns(4)
+        col1_, col2_, col3_, col4_, col5_ = st.columns(5)
 
         with col1_:
             st.button(label="undo", on_click=undo_image)
@@ -76,6 +79,8 @@ def apply_image():
             st.button(label="redo", on_click=redo_image)
         with col3_:
             st.button(label="reset", on_click=reset_image)
+        with col4_:
+            st.button(label="apply", on_click=apply_image)
         with col4_:
             buf = BytesIO()
             Image.fromarray(ss.img_queue[ss.index]).save(buf, format="JPEG")
@@ -143,7 +148,7 @@ col1, col2, col3 = st.columns(spec=3, gap='medium')
 
 # Create a canvas component
 if 'sub_img' in ss:
-    apply_image()
+    frontend()
 
 
     st.header("Palette")
