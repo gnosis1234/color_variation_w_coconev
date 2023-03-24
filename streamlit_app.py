@@ -53,6 +53,7 @@ def apply_image():
     
         
 def select_sub_img(i, j):
+    init_image()
     img = ss.img_queue[ss.index]
     h,w,_=np.shape(img)
     height = h // 9
@@ -64,6 +65,7 @@ def select_sub_img(i, j):
     return ss.sub_img
 
 def select_sub_img_img(img):
+    
     h,w,_=np.shape(img)
     height = h // 9
     width = w // 4
@@ -79,7 +81,7 @@ def change_color():
             img = color_change(image=ss.img_queue[ss.index], prev_bgr=color, target_rgb=hex_to_rgb(changed_color))
             ss.img_queue.append(img)
             ss.index += 1
-            select_sub_img(ss.i, ss.j)
+
 
 if 'image_path' in ss:
     col1, col2 = st.columns(spec=2)
@@ -144,7 +146,7 @@ if 'sub_img' in ss:
                 img = color_change(image=ss.img_queue[ss.index], prev_bgr=ss.sub_img[y][x], target_rgb=hex_to_rgb(ss.selected_color))
                 ss.img_queue.append(img)
                 ss.index += 1
-                select_sub_img(ss.i, ss.j)
+
             ss.objects = objects.to_dict()
 
         st.image(ss.img_queue[ss.index])
